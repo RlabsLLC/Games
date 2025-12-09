@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EcoHill Racer 3D - FPS Edition</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #87CEEB;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            pointer-events: none;
+            color: white;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .stat-box {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #fuel-container {
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        #fuel-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4d4d, #f9cb28, #4cd137);
+            transform-origin: left;
+            transition: width 0.1s linear;
+        }
+
+        #controls-hint {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px black;
+            pointer-events: none;
+            animation: pulse 2s infinite;
+            z-index: 10;
+        }
+
+        /* Menus */
+        .overlay-menu {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #4cd137;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            z-index: 20;
+            min-width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .overlay-menu h1 { margin: 0 0 10px 0; color: #4cd137; }
+        .overlay-menu p { font-size: 18px; margin-bottom: 20px; }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .shop-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item div { flex-grow: 1; margin-right: 10px; }
+
+        .shop-btn {
+            background: #f9cb28;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            color: black;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            min-width: 60px;
+        }
+        .shop-btn:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .main-btn {
+            background: #4cd137;
+            border: none;
+            padding: 15px 40px;
+            font-size: 22px;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s;
+            pointer-events: auto;
+            text-transform: uppercase;
+        }
+        .main-btn:active { transform: scale(0.95); }
+
+        .diff-select {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .diff-btn {
+            padding: 10px 20px;
+            border: 2px solid #555;
+            background: #222;
+            color: #888;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .diff-btn.selected {
+            border-color: #f9cb28;
+            background: #444;
+            color: white;
+        }
+
+        .coin-icon {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        .shake {
+            animation: shake 0.3s ease-in-out infinite !important;
+            color: #ff4d4d !important;
+            opacity: 1 !important;
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div class="stat-box">
+            <div class="label">Distance</div>
+            <div class="value"><span id="score">0</span> m</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Coins</div>
+            <div class="value" style="color:#ffd700">$ <span id="coin-display">0</span></div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Fuel</div>
+            <div id="fuel-container">
+                <div id="fuel-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="controls-hint">
+        <div id="start-msg">Gravity Start Recommended</div>
+        <div id="controls-text" style="font-size: 0.8em; margin-top:5px;">
+            [↑/W] Gas &bull; [←/→] Steer &bull; [↓] Brake
+        </div>
+    </div>
+
+    <!-- Shop / Start Menu -->
+    <div id="shop-menu" class="overlay-menu" style="display: block;">
+        <h1>EcoHill Garage</h1>
+        <p>Total Coins: <span class="coin-icon">$<span id="shop-coins">0</span></span></p>
+        
+        <div class="diff-select">
+            <button class="diff-btn selected" id="diff-easy" onclick="setDifficulty('easy')">EASY ($5)</button>
+            <button class="diff-btn" id="diff-medium" onclick="setDifficulty('medium')">MED ($7)</button>
+            <button class="diff-btn" id="diff-hard" onclick="setDifficulty('hard')">HARD ($10)</button>
+        </div>
+
+        <div class="shop-grid">
+            <div class="shop-item">
+                <div>
+                    <div><strong>Fuel Tank</strong> <span id="lvl-fuel">Lvl 1</span></div>
+                    <div style="font-size:0.8em; color:#aaa;">+20% Capacity</div>
+                </div>
+                <button class="shop-btn" id="btn-fuel" onclick="buyUpgrade('fuel')">250</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <div><strong>Handling</strong> <span id="lvl-handling">Lvl 1</span></div>
+                    <div style="font-size:0.8em; color:#aaa;">Sharper turns (Max 5)</div>
+                </div>
+                <button class="shop-btn" id="btn-handling" onclick="buyUpgrade('handling')">250</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <div><strong>Max Speed</strong> <span id="lvl-speed">Lvl 1</span></div>
+                    <div style="font-size:0.8em; color:#aaa;">+Top Speed (Max 10)</div>
+                </div>
+                <button class="shop-btn" id="btn-speed" onclick="buyUpgrade('speed')">250</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <div><strong>Aerodynamics</strong> <span id="lvl-aero">Lvl 1</span></div>
+                    <div style="font-size:0.8em; color:#aaa;">Less Friction (Max 5)</div>
+                </div>
+                <button class="shop-btn" id="btn-aero" onclick="buyUpgrade('aero')">300</button>
+            </div>
+
+            <!-- One Time Unlocks -->
+            <div class="shop-item">
+                <div>
+                    <div><strong>Rock Tires</strong></div>
+                    <div style="font-size:0.8em; color:#aaa;">Hit rocks safely at 30km/h</div>
+                </div>
+                <button class="shop-btn" id="btn-tires" onclick="buyUpgrade('tires')">2500</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <div><strong>Coin Magnet</strong></div>
+                    <div style="font-size:0.8em; color:#aaa;">2.5x Collection Range</div>
+                </div>
+                <button class="shop-btn" id="btn-magnet" onclick="buyUpgrade('magnet')">1500</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <div><strong>Hydraulic Jump</strong></div>
+                    <div style="font-size:0.8em; color:#aaa;">Unlock Jump (Spacebar)</div>
+                </div>
+                <button class="shop-btn" id="btn-jump" onclick="buyUpgrade('jump')">2000</button>
+            </div>
+        </div>
+
+        <button class="main-btn" onclick="startGame()">RACE!</button>
+    </div>
+
+    <!-- Game Over Menu -->
+    <div id="game-over" class="overlay-menu">
+        <h1 id="go-title" style="color:#ff6b6b">OUT OF FUEL</h1>
+        <p>Distance: <span id="final-score">0</span> m</p>
+        <p>Coins Collected: <span class="coin-icon">$<span id="run-coins">0</span></span></p>
+        <button class="main-btn" onclick="openShop()">Go to Shop</button>
+    </div>
+
+    <div id="game-container"></div>
+
+<script>
+/**
+ * Game Settings
+ */
+const DIFFICULTY = {
+    easy: { coinValue: 5, obsRate: 0.15, trafficRate: 0.05 },
+    medium: { coinValue: 7, obsRate: 0.3, trafficRate: 0.15 },
+    hard: { coinValue: 10, obsRate: 0.5, trafficRate: 0.3 }
+};
+
+let currentDiff = 'easy';
+
+/**
+ * Persistence
+ */
+const DEFAULT_SAVE = {
+    coins: 0,
+    upgrades: { fuel: 1, handling: 1, speed: 1, aero: 1, hasJump: false, hasTires: false, hasMagnet: false }
+};
+let saveData = JSON.parse(localStorage.getItem('ecoHillSave')) || JSON.parse(JSON.stringify(DEFAULT_SAVE));
+if (!saveData.upgrades.speed) saveData.upgrades.speed = 1;
+if (!saveData.upgrades.aero) saveData.upgrades.aero = 1;
+
+function saveGame() {
+    localStorage.setItem('ecoHillSave', JSON.stringify(saveData));
+    updateShopUI();
+}
+
+/**
+ * Configuration
+ */
+const CONFIG = {
+    gravity: 0.30,        
+    baseFriction: 0.98,   
+    brakePower: 1.2,      
+    throttlePower: 2.0,   
+    baseTurnSpeed: 0.6,       
+    fuelConsumption: 0.4, 
+    baseMaxFuel: 120, 
+    renderDistance: 800,  
+    baseMaxSpeedKmh: 40,  
+    maxSpeedKmhCap: 50,   
+    roadWidth: 30,
+    groundWidth: 600,     
+    warmupTime: 5000,
+    movementScale: 0.105, 
+    jumpForce: 1.5,
+    jumpCooldown: 1000,
+    physicsRatio: 4.0     
+};
+
+/**
+ * Game State
+ */
+const state = {
+    running: false, 
+    startTime: 0,
+    coinsCollectedRun: 0,
+    lastJumpTime: 0,
+    bike: {
+        x: 0, y: 0, z: 0,         
+        vx: 0, vz: 0,
+        offsetY: 0, velY: 0,      
+        fuel: 100, angle: 0, steerAngle: 0 
+    },
+    input: { gas: false, brake: false, left: false, right: false, jump: false },
+    generation: { lastX: 0, lastY: 0, currentSlope: 0.5, targetSlope: 0.5, segmentRemaining: 1500 },
+    terrainChunks: [], 
+    rocks: [],
+    coins: [],
+    rollingRocks: [],
+    cars: []
+};
+
+// Three.js Globals
+let scene, camera, renderer, bikeGroup, handlebarGroup, speedoContext, speedoTexture, roadTexture, groundTexture, rockTexture;
+
+function initThree() {
+    const container = document.getElementById('game-container');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB);
+    scene.fog = new THREE.Fog(0x87CEEB, 50, CONFIG.renderDistance);
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    roadTexture = createRoadTexture();
+    groundTexture = createGroundTexture();
+    rockTexture = createRockTexture();
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
+    scene.add(hemiLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(-100, 200, 100);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.left = -300; dirLight.shadow.camera.right = 300;
+    dirLight.shadow.camera.top = 300; dirLight.shadow.camera.bottom = -300;
+    scene.add(dirLight);
+
+    createBike();
+    updateShopUI(); 
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+}
+
+// Textures
+function createRoadTexture() {
+    const c = document.createElement('canvas'); c.width = 512; c.height = 512; const x = c.getContext('2d');
+    x.fillStyle = '#333'; x.fillRect(0,0,512,512);
+    for(let i=0;i<20000;i++){ x.fillStyle = Math.random()<0.5?'#444':'#222'; x.globalAlpha=0.3; x.fillRect(Math.random()*512, Math.random()*512,2,2); }
+    x.globalAlpha=0.8; x.fillStyle='#eebb00'; x.fillRect(250,0,12,512);
+    x.fillStyle='#fff'; x.fillRect(20,0,10,512); x.fillRect(482,0,10,512);
+    const t = new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=16; return t;
+}
+function createGroundTexture() {
+    const c = document.createElement('canvas'); c.width = 512; c.height = 512; const x = c.getContext('2d');
+    x.fillStyle = '#2d4c1e'; x.fillRect(0,0,512,512);
+    for(let i=0;i<30000;i++){ x.fillStyle=Math.random()<0.5?'#3d5c2e':'#1d3c0e'; x.globalAlpha=0.4; x.fillRect(Math.random()*512, Math.random()*512,4,4); }
+    const t = new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=16; return t;
+}
+function createRockTexture() {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 256; const x = c.getContext('2d');
+    x.fillStyle = '#777'; x.fillRect(0,0,256,256);
+    for(let i=0;i<5000;i++){ x.fillStyle=Math.random()<0.5?'#999':'#555'; x.globalAlpha=0.5; x.fillRect(Math.random()*256,Math.random()*256,4,4); }
+    return new THREE.CanvasTexture(c);
+}
+
+// Bike Mesh
+function createBike() {
+    bikeGroup = new THREE.Group();
+    // Frame body - Long on X axis
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(4, 0.5, 0.5), new THREE.MeshLambertMaterial({ color: 0x333333 }));
+    frame.position.y = 2; frame.castShadow = true; bikeGroup.add(frame);
+    
+    // FPS Handlebars
+    const speedoCanvas = document.createElement('canvas'); speedoCanvas.width = 128; speedoCanvas.height = 64;
+    speedoContext = speedoCanvas.getContext('2d'); speedoTexture = new THREE.CanvasTexture(speedoCanvas);
+    
+    handlebarGroup = new THREE.Group();
+    
+    // Main Bar - Cylinder along Z (Left/Right)
+    const barGeo = new THREE.CylinderGeometry(0.12, 0.12, 5, 16); 
+    const metalMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.3 });
+    const bar = new THREE.Mesh(barGeo, metalMat); 
+    bar.rotation.x = Math.PI / 2; // FIXED: Rotate X 90 to align cylinder to Z-axis
+    handlebarGroup.add(bar);
+
+    // Crossbar Pad
+    const padGeo = new THREE.CylinderGeometry(0.25, 0.25, 2, 16); 
+    const pad = new THREE.Mesh(padGeo, new THREE.MeshLambertMaterial({ color: 0x333333 })); 
+    pad.rotation.x = Math.PI / 2; // FIXED: Rotate X 90
+    handlebarGroup.add(pad);
+
+    // Speedometer - Faces -X (Camera)
+    const screenGeo = new THREE.PlaneGeometry(1.5, 0.75); 
+    const screen = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: speedoTexture })); 
+    screen.position.set(0, 0.4, 0.2); 
+    screen.rotation.x = -Math.PI / 4; 
+    screen.rotation.y = -Math.PI / 2; // FIXED: Face -X direction (Backwards)
+    // Wait, Plane default normal is +Z. 
+    // Rotate Y -90 => Faces +X. 
+    // Rotate Y +90 => Faces -X.
+    // Let's try Y = Math.PI / 2.
+    screen.rotation.y = Math.PI / 2; 
+    handlebarGroup.add(screen);
+
+    // Grips & Levers (Aligned on Z)
+    const gripGeo = new THREE.CylinderGeometry(0.14, 0.14, 1, 12); 
+    const gripMat = new THREE.MeshLambertMaterial({ color: 0xcc5500 });
+
+    const lGrip = new THREE.Mesh(gripGeo, gripMat); 
+    lGrip.position.set(0, 0, -2.2); 
+    lGrip.rotation.x = Math.PI / 2; // Align to Z
+    handlebarGroup.add(lGrip);
+
+    const rGrip = new THREE.Mesh(gripGeo, gripMat); 
+    rGrip.position.set(0, 0, 2.2); 
+    rGrip.rotation.x = Math.PI / 2; // Align to Z
+    handlebarGroup.add(rGrip);
+
+    const leverGeo = new THREE.BoxGeometry(0.2, 0.05, 0.8); 
+    const leverMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+    
+    const lLever = new THREE.Mesh(leverGeo, leverMat);
+    lLever.position.set(0.2, -0.2, -1.8); 
+    lLever.rotation.z = -0.2;
+    handlebarGroup.add(lLever);
+
+    const rLever = new THREE.Mesh(leverGeo, leverMat);
+    rLever.position.set(0.2, -0.2, 1.8);
+    rLever.rotation.z = -0.2;
+    handlebarGroup.add(rLever);
+
+    const stemGeo = new THREE.BoxGeometry(1.5, 0.4, 0.4);
+    const stem = new THREE.Mesh(stemGeo, metalMat);
+    stem.position.set(-0.5, -0.5, 0); 
+    stem.rotation.z = 0.5; 
+    handlebarGroup.add(stem);
+
+    handlebarGroup.position.set(3.5, 4.2, 0); 
+    bikeGroup.add(handlebarGroup);
+
+    const fenderGeo = new THREE.CylinderGeometry(2.6, 2.6, 1, 16, 1, true, 0, Math.PI); 
+    fenderGeo.rotateX(Math.PI / 2); 
+    const fender = new THREE.Mesh(fenderGeo, new THREE.MeshLambertMaterial({ color: 0xcc5500, side: THREE.DoubleSide }));
+    fender.position.set(3.0, 1.5, 0.0);
+    bikeGroup.add(fender);
+
+    scene.add(bikeGroup);
+}
+
+// Trees
+const treeGeometries = { trunk: new THREE.CylinderGeometry(1, 1.5, 4, 6), leaves1: new THREE.ConeGeometry(4, 8, 6), leaves2: new THREE.ConeGeometry(3, 6, 6) };
+const treeMaterials = { trunk: new THREE.MeshLambertMaterial({ color: 0x5d4037 }), leaves: new THREE.MeshLambertMaterial({ color: 0x228B22 }) };
+function createTreeMesh() {
+    const g = new THREE.Group();
+    const t = new THREE.Mesh(treeGeometries.trunk, treeMaterials.trunk); t.position.y = 2; t.castShadow = true; g.add(t);
+    const l1 = new THREE.Mesh(treeGeometries.leaves1, treeMaterials.leaves); l1.position.y = 6; l1.castShadow = true; g.add(l1);
+    const l2 = new THREE.Mesh(treeGeometries.leaves2, treeMaterials.leaves); l2.position.y = 9; l2.castShadow = true; g.add(l2);
+    const s = 1 + Math.random() * 0.5; g.scale.set(s, s, s); return g;
+}
+
+// Terrain Gen
+function generateHeightStep() {
+    if (state.generation.segmentRemaining <= 0) {
+        const r = Math.random();
+        if (r < 0.70) { state.generation.targetSlope = 0.3 + Math.random() * 0.4; state.generation.segmentRemaining = 1000 + Math.random() * 1500; } 
+        else if (r < 0.91) { state.generation.targetSlope = 0; state.generation.segmentRemaining = 600 + Math.random() * 600; } 
+        else { state.generation.targetSlope = -0.2 - Math.random() * 0.2; state.generation.segmentRemaining = (300 + Math.random() * 300) * 0.8; }
+    }
+    state.generation.currentSlope += (state.generation.targetSlope - state.generation.currentSlope) * 0.05;
+    state.generation.segmentRemaining -= 10; state.generation.lastX += 10; state.generation.lastY -= state.generation.currentSlope * 10;
+    return { x: state.generation.lastX, y: state.generation.lastY, slope: state.generation.currentSlope };
+}
+
+function updateTerrain3D() {
+    const renderLimit = state.bike.x + CONFIG.renderDistance;
+    let startX = state.terrainChunks.length > 0 ? state.terrainChunks[state.terrainChunks.length - 1].userData.endX : state.generation.lastX;
+    let startY = state.terrainChunks.length > 0 ? state.terrainChunks[state.terrainChunks.length - 1].userData.endY : state.generation.lastY;
+
+    const diffSettings = DIFFICULTY[currentDiff];
+    
+    // Scale intensity with distance (1.0 at start, 2.0 at 10000m)
+    const intensity = 1 + (Math.max(0, state.bike.x) / 10000);
+
+    while (startX < renderLimit) {
+        const numSegments = 20; const chunkGroup = new THREE.Group();
+        const roadVerts=[], roadUVs=[], gLeftVerts=[], gLeftUVs=[], gRightVerts=[], gRightUVs=[];
+        let currentX = startX, currentY = startY;
+        const roadHalf = CONFIG.roadWidth / 2 + 5; const groundHalf = CONFIG.groundWidth / 2;
+
+        const pushRow = (px, py) => {
+            const h = 60 + Math.sin(px * 0.01) * 40 + Math.random() * 10; const gv = px * 0.02, rv = px * 0.05;
+            gLeftVerts.push(px, py + h, -groundHalf, px, py - 1, -roadHalf + 2); gLeftUVs.push(0, gv, 1, gv);
+            roadVerts.push(px, py + 0.1, -roadHalf, px, py + 0.1, roadHalf); roadUVs.push(0, rv, 1, rv);
+            gRightVerts.push(px, py - 1, roadHalf - 2, px, py + h, groundHalf); gRightUVs.push(0, gv, 1, gv);
+        };
+        pushRow(currentX, currentY);
+
+        for (let i = 0; i < numSegments; i++) {
+            const point = generateHeightStep(); currentX = point.x; currentY = point.y; pushRow(currentX, currentY);
+            
+            const speedKmh = state.bike.vx * CONFIG.physicsRatio;
+            
+            // Standard Rocks
+            if ((speedKmh > 5 || Math.random() < 0.1) && Math.random() < (diffSettings.obsRate * intensity * 0.1)) spawnRock(currentX, currentY);
+            // Coins
+            if (Math.random() < 0.10) spawnCoin(currentX, currentY);
+            
+            // Rolling Rocks
+            if (Math.random() < (diffSettings.obsRate * intensity * 0.02)) spawnRollingRock(currentX, currentY);
+
+            // Traffic
+            if (Math.random() < (diffSettings.trafficRate * intensity * 0.05)) spawnCar(currentX, currentY);
+
+            if (Math.random() < 0.4) {
+                const t = createTreeMesh(); const offZ = -(roadHalf + Math.random() * (groundHalf - roadHalf - 20));
+                t.position.set(currentX, currentY + Math.abs(offZ/groundHalf) * 40, offZ); chunkGroup.add(t);
+            }
+            if (Math.random() < 0.4) {
+                const t = createTreeMesh(); const offZ = (roadHalf + Math.random() * (groundHalf - roadHalf - 20));
+                t.position.set(currentX, currentY + Math.abs(offZ/groundHalf) * 40, offZ); chunkGroup.add(t);
+            }
+        }
+
+        const buildMesh = (v, uv, m, n) => {
+            const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+            const ind = []; for (let i = 0; i < numSegments; i++) { const r1 = i*2, r2 = (i+1)*2; ind.push(r1, r1+1, r2, r2, r1+1, r2+1); }
+            g.setIndex(ind); g.computeVertexNormals(); const mesh = new THREE.Mesh(g, m); mesh.receiveShadow = true; if(n) mesh.name = n; return mesh;
+        };
+        const rM = new THREE.MeshLambertMaterial({ map: roadTexture, side: THREE.DoubleSide });
+        const gM = new THREE.MeshLambertMaterial({ map: groundTexture, side: THREE.DoubleSide });
+        chunkGroup.add(buildMesh(roadVerts, roadUVs, rM, 'road'));
+        chunkGroup.add(buildMesh(gLeftVerts, gLeftUVs, gM)); chunkGroup.add(buildMesh(gRightVerts, gRightUVs, gM));
+        chunkGroup.userData = { endX: currentX, endY: currentY };
+        scene.add(chunkGroup); state.terrainChunks.push(chunkGroup); startX = currentX; startY = currentY;
+    }
+
+    const cleanup = (arr) => arr.filter(o => { 
+        if (o.x < state.bike.x - 100) { 
+            scene.remove(o.mesh); 
+            o.mesh.traverse((obj) => {
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) {
+                    if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+                    else obj.material.dispose();
+                }
+            });
+            return false; 
+        } 
+        return true; 
+    });
+    while(state.terrainChunks.length > 0 && state.terrainChunks[0].userData.endX < state.bike.x - 200) {
+        const c = state.terrainChunks.shift(); c.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material) { if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose()); else o.material.dispose(); } }); scene.remove(c);
+    }
+    state.rocks = cleanup(state.rocks); state.coins = cleanup(state.coins); state.rollingRocks = cleanup(state.rollingRocks); state.cars = cleanup(state.cars);
+}
+
+// Spawners
+function spawnRock(x, y) {
+    const z = (Math.random() - 0.5) * (CONFIG.roadWidth - 4);
+    const m = new THREE.Mesh(new THREE.DodecahedronGeometry(1.5, 0), new THREE.MeshStandardMaterial({ map: rockTexture, color: 0xaaaaaa, roughness: 0.8 }));
+    m.position.set(x, y + 1, z); m.rotation.set(Math.random()*3, Math.random()*3, Math.random()*3); m.castShadow = true;
+    scene.add(m); state.rocks.push({ mesh: m, x, y, z, radius: 1.5 });
+}
+function spawnCoin(x, y) {
+    const z = (Math.random() - 0.5) * (CONFIG.roadWidth - 6);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.5, 12), new THREE.MeshPhongMaterial({ color: 0xFFD700, emissive: 0xaa8800, shininess: 50 }));
+    m.rotation.set(Math.PI/2, 0, Math.PI/2); m.position.set(x, y + 2, z); scene.add(m);
+    state.coins.push({ mesh: m, x, y, z, radius: 2.0, collected: false });
+}
+function spawnRollingRock(x, y) {
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const z = side * (CONFIG.roadWidth/2 + 5);
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(2, 1), new THREE.MeshStandardMaterial({ map: rockTexture, color: 0x887766, roughness: 0.9 }));
+    m.position.set(x, y + 2, z); m.castShadow = true; scene.add(m);
+    state.rollingRocks.push({ mesh: m, x, y, z, vz: -side * 0.3, radius: 2.0 });
+}
+function spawnCar(x, y) {
+    const lane = Math.random() < 0.5 ? -8 : 8; // Left or right lane
+    const color = new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
+    
+    const carGroup = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 8), new THREE.MeshPhongMaterial({ color: color }));
+    body.position.y = 2; body.castShadow = true; carGroup.add(body);
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.5, 5), new THREE.MeshPhongMaterial({ color: 0x333333 }));
+    roof.position.y = 4; carGroup.add(roof);
+    
+    // Headlights
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 0.2), new THREE.MeshBasicMaterial({ color: 0xffffcc }));
+    hl.position.set(-1.2, 2, 4); carGroup.add(hl);
+    const hr = hl.clone(); hr.position.set(1.2, 2, 4); carGroup.add(hr);
+
+    carGroup.position.set(x, y, lane);
+    scene.add(carGroup);
+    
+    // Cars move TOWARDS the player (negative X direction relative to spawn)
+    state.cars.push({ mesh: carGroup, x, y, z: lane, vx: -0.8, radius: 2.5 });
+}
+
+function getTerrainInfo(x) {
+    for (const chunk of state.terrainChunks) {
+        const road = chunk.getObjectByName('road'); if (!road) continue;
+        const pos = road.geometry.attributes.position;
+        if (x >= pos.getX(0) && x <= chunk.userData.endX) {
+            const idx = Math.min(Math.max(0, Math.floor((x - pos.getX(0)) / 10)), (pos.count/2)-2);
+            const i1=idx*2, i2=(idx+1)*2;
+            const x1=pos.getX(i1), y1=pos.getY(i1), x2=pos.getX(i2), y2=pos.getY(i2);
+            const t = (x - x1)/(x2 - x1);
+            return { y: y1 + (y2-y1)*t, angle: Math.atan2(y2-y1, x2-x1) };
+        }
+    }
+    return { y: 0, angle: 0 };
+}
+
+// Logic
+function updatePhysics() {
+    if (!state.running) return;
+    const b = state.bike;
+    const terrain = getTerrainInfo(b.x);
+    
+    if (b.offsetY > 0 || b.velY > 0) { b.velY -= 0.1; b.offsetY += b.velY; if (b.offsetY <= 0) { b.offsetY = 0; b.velY = 0; } }
+    else { b.offsetY = 0; b.velY = 0; if (state.input.jump && saveData.upgrades.hasJump && (Date.now() - state.lastJumpTime > CONFIG.jumpCooldown)) { b.velY = CONFIG.jumpForce; state.lastJumpTime = Date.now(); } }
+
+    b.y = terrain.y + b.offsetY;
+    if (b.offsetY > 0) b.angle *= 0.95; else b.angle = terrain.angle;
+
+    b.vx += -Math.sin(terrain.angle) * CONFIG.gravity;
+    
+    if (state.input.gas && b.fuel > 0) { b.vx += CONFIG.throttlePower * 0.1; b.fuel -= CONFIG.fuelConsumption; }
+    if (state.input.brake) b.vx -= CONFIG.brakePower * 0.2;
+
+    const turnMult = 1 + (saveData.upgrades.handling - 1) * 0.3;
+    let steer = 0; if (state.input.left) steer = 1; if (state.input.right) steer = -1;
+    b.z -= steer * CONFIG.baseTurnSpeed * turnMult;
+    state.bike.steerAngle += (steer - state.bike.steerAngle) * 0.1;
+
+    const limit = CONFIG.roadWidth / 2 - 2; if (b.z < -limit) b.z = -limit; if (b.z > limit) b.z = limit;
+
+    const friction = CONFIG.baseFriction + (saveData.upgrades.aero - 1) * 0.002;
+    b.vx *= friction; if (b.vx < 0) b.vx = 0;
+
+    const sLvl = saveData.upgrades.speed;
+    const maxSpd = (CONFIG.baseMaxSpeedKmh + (sLvl-1)*1.111) / CONFIG.physicsRatio;
+    if (!state.input.gas && b.vx > maxSpd) b.vx *= 0.99; if (b.vx > maxSpd) b.vx = maxSpd;
+
+    b.x += b.vx * CONFIG.movementScale;
+
+    // Obstacle Logic
+    // Rolling Rocks
+    state.rollingRocks.forEach(r => {
+        r.z += r.vz; r.mesh.position.z = r.z;
+        r.mesh.rotation.x += 0.1; r.mesh.rotation.z -= r.vz;
+        // Adjust Y to ground
+        // Approximate Y from player's chunk logic is expensive, let's just keep it near spawn Y
+        // Simple collision
+        if (Math.abs(b.x - r.x) < 3 && Math.abs(b.z - r.z) < 3 && b.offsetY < 2) {
+             const spd = b.vx * CONFIG.physicsRatio;
+             if (spd >= (saveData.upgrades.hasTires ? 30 : 20)) crash("Hit a rolling boulder!"); else b.vx *= 0.5;
+        }
+    });
+
+    // Cars
+    state.cars.forEach(c => {
+        c.x += c.vx; 
+        // Update Y based on slope roughly or keep existing Y + slope diff?
+        // Let's re-snap Y to terrain to look good
+        const t = getTerrainInfo(c.x); c.y = t.y; c.mesh.rotation.z = t.angle;
+        c.mesh.position.set(c.x, c.y, c.z);
+        
+        // Collision (Instant Death)
+        if (Math.abs(b.x - c.x) < 4 && Math.abs(b.z - c.z) < 3.5 && b.offsetY < 3) {
+            crash("Head-on collision!");
+        }
+    });
+
+    // Static Rocks
+    const safeRockSpeed = saveData.upgrades.hasTires ? 30 : 20;
+    if (b.offsetY < 2) {
+        for (const r of state.rocks) {
+            if (Math.sqrt((b.x - r.x)**2 + (b.z - r.z)**2) < r.radius + 1) {
+                if (b.vx * CONFIG.physicsRatio >= safeRockSpeed) crash("You hit a rock!"); else b.vx *= 0.5;
+            }
+        }
+    }
+
+    const pRad = saveData.upgrades.hasMagnet ? 10.0 : 4.0;
+    state.coins.forEach(c => {
+        if(!c.collected && Math.sqrt((b.x - c.x)**2 + (b.z - c.z)**2) < pRad && b.offsetY < 4) {
+            c.collected = true; c.mesh.visible = false;
+            const val = DIFFICULTY[currentDiff].coinValue;
+            state.coinsCollectedRun += val; saveData.coins += val;
+            document.getElementById('coin-display').innerText = saveData.coins;
+        }
+        c.mesh.rotation.x += 0.05;
+    });
+
+    if (b.fuel <= 0 && b.vx < (1 / CONFIG.physicsRatio)) endGame("OUT OF FUEL");
+    if (b.fuel < 0) b.fuel = 0;
+
+    const isWarmup = (Date.now() - state.startTime) < CONFIG.warmupTime;
+    const hint = document.getElementById('start-msg');
+    if (!state.input.gas || b.fuel > 0) {
+        hint.classList.remove('shake');
+        if (isWarmup) { hint.style.color = '#4cd137'; hint.innerText = `WARM ENGINE! ${(5 - (Date.now() - state.startTime)/1000).toFixed(1)}s`; }
+        else { hint.innerText = ""; }
+    }
+}
+
+function updateVisuals() {
+    if (!bikeGroup) return;
+    bikeGroup.position.set(state.bike.x, state.bike.y, state.bike.z);
+    bikeGroup.rotation.z = state.bike.angle;
+    bikeGroup.rotation.x = state.bike.steerAngle * 0.2;
+    if (handlebarGroup) handlebarGroup.rotation.y = state.bike.steerAngle * 0.5;
+
+    const speedKmh = Math.floor(state.bike.vx * CONFIG.physicsRatio);
+    speedoContext.fillStyle = '#000'; speedoContext.fillRect(0, 0, 128, 64);
+    speedoContext.fillStyle = '#4cd137'; speedoContext.font = 'bold 30px Arial';
+    speedoContext.textAlign = 'center'; speedoContext.fillText(speedKmh + " KM/H", 64, 42);
+    speedoTexture.needsUpdate = true;
+
+    let sX = 0, sY = 0;
+    if (speedKmh > 20 && state.bike.offsetY <= 0) {
+        const i = (speedKmh / 40) * 0.15;
+        sX = (Math.random() - 0.5) * i; sY = (Math.random() - 0.5) * i;
+        if (state.input.brake) sY += (Math.random() - 0.5) * 0.2;
+    }
+
+    camera.position.x = state.bike.x + 1; camera.position.y = state.bike.y + 5 + sY; camera.position.z = state.bike.z + sX;
+    const lY = state.bike.y + (Math.sin(state.bike.angle) * 50);
+    camera.lookAt(state.bike.x + 50, lY + 4, state.bike.z * 0.5);
+    camera.rotation.z += state.bike.steerAngle * 0.15;
+}
+
+// UI
+function setDifficulty(diff) {
+    currentDiff = diff;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('diff-' + diff).classList.add('selected');
+}
+
+function updateShopUI() {
+    document.getElementById('shop-coins').innerText = saveData.coins;
+    document.getElementById('coin-display').innerText = saveData.coins;
+    const setBtn = (id, lvl, cost, max) => {
+        const btn = document.getElementById(id);
+        const lbl = document.getElementById('lvl-' + id.split('-')[1]);
+        if (lbl) lbl.innerText = `Lvl ${lvl}`;
+        if (lvl >= max) { btn.innerText = "MAX"; btn.disabled = true; btn.style.background = "#888"; }
+        else { btn.innerText = cost; btn.disabled = saveData.coins < cost; }
+    };
+    setBtn('btn-fuel', saveData.upgrades.fuel, 250 * saveData.upgrades.fuel, 999);
+    setBtn('btn-handling', saveData.upgrades.handling, 250 * saveData.upgrades.handling, 5);
+    setBtn('btn-speed', saveData.upgrades.speed, 250 * saveData.upgrades.speed, 10);
+    setBtn('btn-aero', saveData.upgrades.aero, 300 * saveData.upgrades.aero, 5);
+    const unlock = (id, k, c) => {
+        const b = document.getElementById(id);
+        if (saveData.upgrades[k]) { b.innerText = "OWNED"; b.disabled = true; b.style.background = "#4cd137"; }
+        else { b.innerText = c; b.disabled = saveData.coins < c; }
+    };
+    unlock('btn-jump', 'hasJump', 2000); unlock('btn-tires', 'hasTires', 2500); unlock('btn-magnet', 'hasMagnet', 1500);
+}
+
+function buyUpgrade(type) {
+    const costMap = { fuel: 250, handling: 250, speed: 250, aero: 300 };
+    if (['fuel', 'handling', 'speed', 'aero'].includes(type)) {
+        const lvl = saveData.upgrades[type]; const cost = costMap[type] * lvl;
+        const max = (type === 'handling' || type === 'aero') ? 5 : (type === 'speed' ? 10 : 999);
+        if (saveData.coins >= cost && lvl < max) { saveData.coins -= cost; saveData.upgrades[type]++; saveGame(); }
+    } else {
+        const u = { jump: 2000, tires: 2500, magnet: 1500 }; const k = { jump: 'hasJump', tires: 'hasTires', magnet: 'hasMagnet' };
+        if (saveData.coins >= u[type] && !saveData.upgrades[k[type]]) { saveData.coins -= u[type]; saveData.upgrades[k[type]] = true; saveGame(); }
+    }
+}
+
+function openShop() { document.getElementById('game-over').style.display = 'none'; document.getElementById('shop-menu').style.display = 'block'; updateShopUI(); }
+function startGame() { document.getElementById('shop-menu').style.display = 'none'; resetGame(); }
+function crash(reason) { state.running = false; document.getElementById('go-title').innerText = "CRASHED"; document.getElementById('go-title').style.color = "red"; endGame(reason); }
+function endGame(msg) { state.running = false; saveGame(); document.getElementById('final-score').innerText = Math.floor(state.bike.x / 10); document.getElementById('run-coins').innerText = state.coinsCollectedRun; const go = document.getElementById('game-over'); go.querySelector('h1').innerText = msg || "GAME OVER"; go.style.display = 'block'; }
+
+function updateUI() {
+    document.getElementById('score').innerText = Math.floor(state.bike.x / 10);
+    const maxF = CONFIG.baseMaxFuel * (1 + (saveData.upgrades.fuel - 1) * 0.2);
+    const fuelPct = (state.bike.fuel / maxF) * 100;
+    const fb = document.getElementById('fuel-bar');
+    fb.style.width = `${fuelPct}%`;
+    fb.style.background = fuelPct < 20 ? '#ff4d4d' : 'linear-gradient(90deg, #ff4d4d, #f9cb28, #4cd137)';
+}
+
+function handleKey(e, isDown) {
+    const c = e.code, k = e.key;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', ' '].includes(c) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) e.preventDefault();
+    if (isDown && (c === 'KeyC' || k.toLowerCase() === 'c')) { saveData.coins += 10000; updateShopUI(); document.getElementById('coin-display').innerText = saveData.coins; }
+    if (c === 'KeyW' || c === 'ArrowUp' || k === 'ArrowUp') state.input.gas = isDown;
+    if (c === 'KeyS' || c === 'ArrowDown' || k === 'ArrowDown') state.input.brake = isDown;
+    if (c === 'KeyA' || c === 'ArrowLeft' || k === 'ArrowLeft') state.input.left = isDown;
+    if (c === 'KeyD' || c === 'ArrowRight' || k === 'ArrowRight') state.input.right = isDown;
+    if (c === 'Space' || k === ' ') state.input.jump = isDown;
+}
+window.addEventListener('keydown', (e) => handleKey(e, true)); window.addEventListener('keyup', (e) => handleKey(e, false));
+
+function resetGame() {
+    state.running = true; state.startTime = Date.now(); state.coinsCollectedRun = 0;
+    state.bike.x = 0; state.bike.y = 0; state.bike.z = 0; state.bike.vx = 0; state.bike.offsetY = 0; state.bike.velY = 0; state.bike.steerAngle = 0;
+    const maxF = CONFIG.baseMaxFuel * (1 + (saveData.upgrades.fuel - 1) * 0.2); state.bike.fuel = maxF;
+    state.generation = { lastX: 0, lastY: 0, currentSlope: 0.5, targetSlope: 0.5, segmentRemaining: 1500 };
+    state.terrainChunks.forEach(c => { scene.remove(c); c.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material) { if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose()); else o.material.dispose(); }}); });
+    state.terrainChunks = [];
+    const wipe = (arr) => { arr.forEach(o => scene.remove(o.mesh)); return []; };
+    state.rocks = wipe(state.rocks); state.coins = wipe(state.coins); state.rollingRocks = wipe(state.rollingRocks); state.cars = wipe(state.cars);
+    document.getElementById('game-over').style.display = 'none';
+}
+
+function animate() { requestAnimationFrame(animate); if(state.running) { updateTerrain3D(); updatePhysics(); } updateVisuals(); updateUI(); renderer.render(scene, camera); }
+initThree(); animate();
+</script>
+</body>
+</html>
