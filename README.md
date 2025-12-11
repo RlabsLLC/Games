@@ -1,6 +1,6 @@
 ![Go to Website](banner_img.png)
 
-# V I B E // H U B v1
+# V I B E // H U B v1.8
 
 Ad Free Games Here!
 [Go to Website](https://rlabsllc.github.io/games/)
