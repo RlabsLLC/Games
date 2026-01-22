@@ -6,6 +6,7 @@
     <title>System Crash - Card Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
 
@@ -98,6 +99,7 @@
         <div id="auth-screen" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center z-[60]">
             <h1 class="text-3xl md:text-5xl text-green-400 pixel-font mb-8 text-center glitch">SYSTEM LOGIN</h1>
             
+            <!-- Main Buttons -->
             <div id="auth-buttons" class="flex flex-col gap-4 w-64">
                 <button onclick="showLogin()" class="bg-blue-600 hover:bg-blue-500 text-black py-3 px-6 rounded shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold text-lg pixel-font transition">LOGIN</button>
                 <button onclick="showSignup()" class="bg-purple-600 hover:bg-purple-500 text-white py-3 px-6 rounded shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold text-lg pixel-font transition">SIGN UP</button>
@@ -105,6 +107,7 @@
                 <div id="loading-msg" class="text-yellow-400 text-center text-xs pixel-font mt-4 hidden animate-pulse">CONNECTING TO CLOUD...</div>
             </div>
 
+            <!-- Login Form -->
             <div id="login-form" class="hidden flex-col gap-4 w-72">
                 <input type="text" id="login-user" placeholder="USERNAME" class="bg-slate-800 border-2 border-blue-500 text-white p-3 pixel-font text-sm">
                 <input type="password" id="login-pass" placeholder="PASSWORD" class="bg-slate-800 border-2 border-blue-500 text-white p-3 pixel-font text-sm">
@@ -112,6 +115,7 @@
                 <button onclick="showAuthButtons()" class="text-slate-500 text-xs pixel-font hover:text-white">BACK</button>
             </div>
 
+            <!-- Signup Form -->
             <div id="signup-form" class="hidden flex-col gap-4 w-72">
                 <input type="text" id="signup-user" placeholder="NEW USERNAME" maxlength="12" class="bg-slate-800 border-2 border-purple-500 text-white p-3 pixel-font text-sm">
                 <input type="password" id="signup-pass" placeholder="PASSWORD" class="bg-slate-800 border-2 border-purple-500 text-white p-3 pixel-font text-sm">
@@ -147,7 +151,7 @@
                     LOGOUT
                 </button>
             </div>
-            <p class="mt-4 text-slate-500 text-xs">v2.2.3 | Future Sight Fix</p>
+            <p class="mt-4 text-slate-500 text-xs">v3.1.1 | MP Draw Patch</p>
         </div>
 
         <!-- === UI: MULTIPLAYER LOBBY === -->
@@ -256,7 +260,7 @@
                             <button onclick="sendEmote('👍')" class="text-2xl hover:bg-slate-700 rounded p-1">👍</button>
                             <button onclick="sendEmote('🍞')" class="text-2xl hover:bg-slate-700 rounded p-1">🍞</button>
                             <button onclick="sendEmote('🫴🃏')" class="text-2xl hover:bg-slate-700 rounded p-1">🫴🃏</button>
-                            <button onclick="sendEmote('😬👉👈')" class="text-2xl hover:bg-slate-700 rounded p-1">😬👉👈</button>
+                            <button onclick="sendEmote('😬')" class="text-2xl hover:bg-slate-700 rounded p-1">😬</button>
                             <button onclick="sendEmote('🥲')" class="text-2xl hover:bg-slate-700 rounded p-1">🥲</button>
                             <button onclick="sendEmote('😀')" class="text-2xl hover:bg-slate-700 rounded p-1">😀</button>
                             <button onclick="sendEmote('🤣')" class="text-2xl hover:bg-slate-700 rounded p-1">🤣</button>
@@ -266,6 +270,13 @@
                             <button onclick="sendEmote('😶')" class="text-2xl hover:bg-slate-700 rounded p-1">😶</button>
                             <button onclick="sendEmote('🙃')" class="text-2xl hover:bg-slate-700 rounded p-1">🙃</button>
                             <button onclick="sendEmote('😎')" class="text-2xl hover:bg-slate-700 rounded p-1">😎</button>
+                            <button onclick="sendEmote('GG')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">GG</button>
+                            <button onclick="sendEmote('YOOO')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">YOOO</button>
+                            <button onclick="sendEmote('*Cooked*')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">*Cooked*</button>
+                            <button onclick="sendEmote('Nice...')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">Nice...</button>
+                            <button onclick="sendEmote('Kick?')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">Kick?</button>
+                            <button onclick="sendEmote('Yes')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">Yes</button>
+                            <button onclick="sendEmote('No')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">No</button>
                             <button onclick="sendEmote('GG')" class="col-span-4 text-md text-yellow-400 hover:bg-slate-700 py-1 font-bold pixel-font">GG</button>
                         </div>
 
@@ -294,176 +305,26 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app';
-        
-        let currentUser = null;
-        let userData = { username: "GUEST", xp: 0, level: 1, isGuest: true };
-        let gameId = null;
-        let unsubscribeGame = null;
-        let myPlayerId = null; 
-
+    <!-- MAIN SCRIPT -->
+    <script>
         // === UTILS ===
         function showToast(msg) {
             const el = document.createElement('div');
-            el.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black border-2 border-green-500 text-green-500 p-4 z-[80] pixel-font text-xl shadow-lg';
+            el.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black border-2 border-green-500 text-green-500 p-4 z-[80] pixel-font text-xl shadow-lg pointer-events-none';
             el.innerText = msg;
             document.getElementById('app').appendChild(el);
             setTimeout(() => el.remove(), 2000);
         }
 
-        // === AUTH & STARTUP ===
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        };
-        initAuth();
+        // === PEERJS & STATE ===
+        let peer = null;
+        let connections = []; // List of DataConnections (Host Only)
+        let hostConn = null;  // DataConnection to Host (Client Only)
+        let myPeerId = null;
+        let isHost = false;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                if (!myPlayerId) myPlayerId = user.uid; 
-                const cachedUser = localStorage.getItem('system_crash_username');
-                if (cachedUser) {
-                    document.getElementById('auth-buttons').classList.add('hidden');
-                    document.getElementById('loading-msg').classList.remove('hidden');
-                    const account = await fetchUserAccount(cachedUser);
-                    if (account) {
-                        userData = { ...account, isGuest: false };
-                        updateMenuUI();
-                        document.getElementById('auth-screen').classList.add('hidden');
-                        document.getElementById('main-menu').classList.remove('hidden');
-                    } else {
-                        document.getElementById('loading-msg').classList.add('hidden');
-                        document.getElementById('auth-buttons').classList.remove('hidden');
-                    }
-                }
-            }
-        });
-
-        // === AUTH UI HANDLERS ===
-        window.showLogin = () => {
-            document.getElementById('auth-buttons').classList.add('hidden');
-            document.getElementById('login-form').classList.replace('hidden', 'flex');
-        }
-        window.showSignup = () => {
-            document.getElementById('auth-buttons').classList.add('hidden');
-            document.getElementById('signup-form').classList.replace('hidden', 'flex');
-        }
-        window.showAuthButtons = () => {
-            document.getElementById('login-form').classList.replace('flex', 'hidden');
-            document.getElementById('signup-form').classList.replace('flex', 'hidden');
-            document.getElementById('auth-buttons').classList.remove('hidden');
-        }
-
-        async function fetchUserAccount(username) {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', username.toUpperCase());
-            try {
-                const snap = await getDoc(docRef);
-                return snap.exists() ? snap.data() : null;
-            } catch(e) { console.error("Fetch error:", e); return null; }
-        }
-
-        async function saveUserAccount(data) {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', data.username.toUpperCase());
-            try {
-                await setDoc(docRef, data);
-                showSaveIndicator();
-                updateMenuUI(); 
-            } catch(e) { console.error("Save error:", e); }
-        }
-
-        function showSaveIndicator() {
-            const el = document.getElementById('save-indicator');
-            el.style.opacity = 1;
-            setTimeout(() => { el.style.opacity = 0; }, 2000);
-        }
-
-        window.performLogin = async () => {
-            const user = document.getElementById('login-user').value.trim().toUpperCase();
-            const pass = document.getElementById('login-pass').value.trim();
-            if (!user || !pass) return alert("Missing Creds");
-            const account = await fetchUserAccount(user);
-            if (account && account.password === pass) {
-                userData = { ...account, isGuest: false };
-                localStorage.setItem('system_crash_username', user); 
-                updateMenuUI();
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-menu').classList.remove('hidden');
-            } else {
-                alert("Invalid Credentials or User Not Found");
-            }
-        }
-
-        window.performSignup = async () => {
-            const user = document.getElementById('signup-user').value.trim().toUpperCase();
-            const pass = document.getElementById('signup-pass').value.trim();
-            if (user.length < 3 || pass.length < 3) return alert("Too short");
-            const exists = await fetchUserAccount(user);
-            if (exists) return alert("Username Taken");
-            const newAccount = { username: user, password: pass, xp: 0, level: 1 };
-            await saveUserAccount(newAccount);
-            alert("Account Created! Please Login.");
-            showAuthButtons();
-        }
-
-        window.guestLogin = () => {
-            userData = { username: "GUEST_" + Math.floor(Math.random()*999), xp: 0, level: 1, isGuest: true };
-            updateMenuUI();
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-menu').classList.remove('hidden');
-        }
-
-        window.logout = () => {
-            localStorage.removeItem('system_crash_username'); 
-            userData = { username: "GUEST", xp: 0, level: 1, isGuest: true };
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('auth-screen').classList.remove('hidden');
-            showAuthButtons();
-        }
-
-        function updateMenuUI() {
-            document.getElementById('menu-username').innerText = userData.username;
-            document.getElementById('menu-level').innerText = userData.level;
-            const nextXp = Math.floor(100 * Math.pow(1.2, userData.level - 1));
-            document.getElementById('menu-xp').innerText = Math.floor(userData.xp);
-            document.getElementById('menu-xp-next').innerText = nextXp;
-            const pct = Math.min(100, (userData.xp / nextXp) * 100);
-            document.getElementById('xp-bar').style.width = `${pct}%`;
-            if (userData.isGuest) {
-                document.getElementById('btn-public-match').classList.add('opacity-50', 'pointer-events-none');
-                document.getElementById('guest-lock-msg').classList.remove('hidden');
-            } else {
-                document.getElementById('btn-public-match').classList.remove('opacity-50', 'pointer-events-none');
-                document.getElementById('guest-lock-msg').classList.add('hidden');
-            }
-        }
-
-        function addXp(amount) {
-            if (userData.isGuest) return; 
-            userData.xp += amount;
-            let nextXp = Math.floor(100 * Math.pow(1.2, userData.level - 1));
-            while (userData.xp >= nextXp) {
-                userData.xp -= nextXp;
-                userData.level++;
-                nextXp = Math.floor(100 * Math.pow(1.2, userData.level - 1));
-                showToast("LEVEL UP!");
-            }
-            saveUserAccount(userData); 
-        }
-
+        let userData = { username: "GUEST", xp: 0, level: 1, isGuest: true };
+        
         const CARD_TYPES = {
             CRASH: { id: 'CRASH', name: 'SYSTEM CRASH', color: 'bg-red-600', icon: 'fa-skull', desc: 'You explode immediately.' },
             PATCH: { id: 'PATCH', name: 'PATCH', color: 'bg-green-600', icon: 'fa-wrench', desc: 'Defuse a System Crash.' },
@@ -482,251 +343,114 @@
             activeFlashCard: null 
         };
 
-        window.toggleReportMenu = () => {
-            const menu = document.getElementById('report-menu');
-            const select = document.getElementById('report-target');
-            if (menu.classList.contains('hidden')) {
-                select.innerHTML = '';
-                localState.players.forEach(p => {
-                    if (p.id !== myPlayerId) {
-                        const opt = document.createElement('option');
-                        opt.value = p.id;
-                        opt.innerText = p.name;
-                        select.appendChild(opt);
-                    }
-                });
-                if (localState.players.length > 0 && localState.players[0].id === myPlayerId) {
-                    document.getElementById('admin-rename-btn').classList.remove('hidden');
+        // === INITIALIZATION ===
+        window.onload = () => {
+            const cachedUser = localStorage.getItem('system_crash_username');
+            if (cachedUser) {
+                const storedData = localStorage.getItem('system_crash_data_' + cachedUser);
+                if (storedData) userData = JSON.parse(storedData);
+                else userData.username = cachedUser;
+                
+                userData.isGuest = false;
+                updateMenuUI();
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-menu').classList.remove('hidden');
+            }
+        };
+
+        // === AUTH HANDLERS ===
+        window.showLogin = () => {
+            document.getElementById('auth-buttons').classList.add('hidden');
+            document.getElementById('login-form').classList.replace('hidden', 'flex');
+        }
+        window.showSignup = () => {
+            document.getElementById('auth-buttons').classList.add('hidden');
+            document.getElementById('signup-form').classList.replace('hidden', 'flex');
+        }
+        window.showAuthButtons = () => {
+            document.getElementById('login-form').classList.replace('flex', 'hidden');
+            document.getElementById('signup-form').classList.replace('flex', 'hidden');
+            document.getElementById('auth-buttons').classList.remove('hidden');
+        }
+
+        window.performLogin = () => {
+            const user = document.getElementById('login-user').value.trim().toUpperCase();
+            const pass = document.getElementById('login-pass').value.trim();
+            if(!user || !pass) return alert("Missing Creds");
+            
+            const stored = localStorage.getItem('system_crash_account_' + user);
+            if (stored) {
+                const acc = JSON.parse(stored);
+                if (acc.password === pass) {
+                    const data = localStorage.getItem('system_crash_data_' + user);
+                    if(data) userData = JSON.parse(data);
+                    else userData = { username: user, xp: 0, level: 1, isGuest: false };
+                    
+                    localStorage.setItem('system_crash_username', user);
+                    updateMenuUI();
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('main-menu').classList.remove('hidden');
                 } else {
-                    document.getElementById('admin-rename-btn').classList.add('hidden');
-                }
-                menu.classList.remove('hidden');
-                menu.classList.add('flex');
-            } else {
-                menu.classList.add('hidden');
-                menu.classList.remove('flex');
-            }
-        }
-
-        window.submitReport = async (type) => {
-            const targetId = document.getElementById('report-target').value;
-            if (!targetId) return;
-            let newState = JSON.parse(JSON.stringify(localState));
-            if (type === 'KICK') {
-                if (!newState.kickVotes) newState.kickVotes = {};
-                if (!newState.kickVotes[targetId]) newState.kickVotes[targetId] = [];
-                if (!newState.kickVotes[targetId].includes(myPlayerId)) {
-                    newState.kickVotes[targetId].push(myPlayerId);
-                    showToast(`VOTE CAST (${newState.kickVotes[targetId].length}/3)`);
-                } else {
-                    showToast("ALREADY VOTED");
-                    return;
-                }
-                if (newState.kickVotes[targetId].length >= 3) {
-                    newState.players = newState.players.filter(p => p.id !== targetId);
-                    showToast("PLAYER EJECTED");
-                }
-            } else if (type === 'RENAME') {
-                const pIndex = newState.players.findIndex(p => p.id === targetId);
-                if (pIndex > -1) {
-                    newState.players[pIndex].name = "USER_" + Math.floor(Math.random() * 1000);
-                    showToast("NAME SANITIZED");
-                }
-            }
-            await updateState(newState);
-            document.getElementById('report-menu').classList.add('hidden');
-        }
-
-        window.lobbyReport = async (playerId) => {
-            let newState = JSON.parse(JSON.stringify(localState));
-            const p = newState.players.find(p => p.id === playerId);
-            if (p) {
-                p.flagged = true;
-                await updateState(newState);
-                alert("Player Flagged to Host");
-            }
-        }
-
-        function endGame(winnerName) {
-            let xpEarned = 0;
-            if (localState.mode === 'single') {
-                if (!userData.isGuest) {
-                    xpEarned += 10;
-                    addXp(xpEarned); 
+                    alert("Invalid Password");
                 }
             } else {
-                const me = localState.players.find(p => p.id === myPlayerId);
-                if (me) {
-                    xpEarned += (localState.cardsPlayedThisGame || 0) * 2; 
-                    if (!me.isDead) xpEarned += 100;
-                    else xpEarned += 25; 
-                    addXp(xpEarned);
-                }
+                alert("User not found");
             }
-            document.getElementById('xp-gain-msg').innerText = userData.isGuest ? "GUEST MODE (NO XP SAVED)" : `+${xpEarned} XP GAINED`;
-            document.getElementById('winner-text').innerText = `${winnerName} WINS!`;
-            document.getElementById('game-over-modal').classList.remove('hidden');
         }
 
-        async function updateState(newState) {
-            if (localState.mode === 'single') {
-                localState = newState;
-                renderGame();
-                checkBotTurn();
-            } else {
-                if (!gameId) return;
-                try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', gameId), newState);
-                } catch(e) { console.error("Update failed", e); }
-            }
+        window.performSignup = () => {
+            const user = document.getElementById('signup-user').value.trim().toUpperCase();
+            const pass = document.getElementById('signup-pass').value.trim();
+            if(!user || !pass) return alert("Missing Creds");
+            if (localStorage.getItem('system_crash_account_' + user)) return alert("User exists");
+            
+            const acc = { username: user, password: pass };
+            localStorage.setItem('system_crash_account_' + user, JSON.stringify(acc));
+            const data = { username: user, xp: 0, level: 1, isGuest: false };
+            localStorage.setItem('system_crash_data_' + user, JSON.stringify(data));
+            
+            alert("Account Created! Login now.");
+            showAuthButtons();
         }
+
+        window.guestLogin = () => {
+            userData = { username: "GUEST_" + Math.floor(Math.random()*999), xp: 0, level: 1, isGuest: true };
+            updateMenuUI();
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        window.logout = () => {
+            localStorage.removeItem('system_crash_username');
+            location.reload();
+        }
+
+        function updateMenuUI() {
+            document.getElementById('menu-username').innerText = userData.username;
+            document.getElementById('menu-level').innerText = userData.level;
+            const nextXp = Math.floor(100 * Math.pow(1.2, userData.level - 1));
+            document.getElementById('menu-xp').innerText = Math.floor(userData.xp);
+            document.getElementById('menu-xp-next').innerText = nextXp;
+            const pct = Math.min(100, (userData.xp / nextXp) * 100);
+            document.getElementById('xp-bar').style.width = `${pct}%`;
+        }
+
+        function addXp(amount) {
+            if (userData.isGuest) return;
+            userData.xp += amount;
+            let nextXp = Math.floor(100 * Math.pow(1.2, userData.level - 1));
+            while (userData.xp >= nextXp) {
+                userData.xp -= nextXp;
+                userData.level++;
+                nextXp = Math.floor(100 * Math.pow(1.2, userData.level - 1));
+                showToast("LEVEL UP!");
+            }
+            localStorage.setItem('system_crash_data_' + userData.username, JSON.stringify(userData));
+            updateMenuUI();
+        }
+
+        // === GAME LOGIC DEFINITIONS ===
         
-        window.startGame = (mode) => {
-            document.getElementById('main-menu').classList.add('hidden');
-            if (mode === 'single') {
-                startSinglePlayer();
-            }
-        };
-
-        window.showMultiplayerMenu = () => {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('lobby-menu').classList.remove('hidden');
-        };
-
-        function startSinglePlayer() {
-            localState.mode = 'single';
-            myPlayerId = 'player'; 
-            localState.players = [
-                { id: 'player', name: userData.username, hand: [], isBot: false, isDead: false, turnsToTake: 1, emote: null },
-                { id: 'bot1', name: 'BOT_ALPHA', hand: [], isBot: true, isDead: false, turnsToTake: 1, emote: null },
-                { id: 'bot2', name: 'BOT_BETA', hand: [], isBot: true, isDead: false, turnsToTake: 1, emote: null },
-                { id: 'bot3', name: 'BOT_GAMMA', hand: [], isBot: true, isDead: false, turnsToTake: 1, emote: null }
-            ];
-            localState.cardsPlayedThisGame = 0;
-            // NEW FLOW: Create Safe Deck -> Deal -> Insert Bombs
-            setupDeckForDeal(4);
-            dealHands();
-            insertBombs(4);
-            
-            localState.status = 'PLAYING';
-            localState.turnIndex = Math.floor(Math.random() * 4);
-            document.getElementById('game-board').classList.remove('hidden');
-            renderGame();
-            checkBotTurn();
-        }
-
-        // --- NEW DECK GEN ---
-        function setupDeckForDeal(playerCount) {
-            let deck = [];
-            const multipliers = Math.max(1, Math.ceil(playerCount / 4));
-            for(let i=0; i < 4 * multipliers; i++) {
-                deck.push(CARD_TYPES.ATTACK, CARD_TYPES.SKIP, CARD_TYPES.FUTURE, CARD_TYPES.SHUFFLE, CARD_TYPES.STEAL, CARD_TYPES.FRAG_0, CARD_TYPES.FRAG_1); 
-            }
-            for(let i=0; i < 3 * multipliers; i++) {
-                deck.push(CARD_TYPES.ATTACK, CARD_TYPES.SKIP, CARD_TYPES.FRAG_0, CARD_TYPES.FRAG_1);
-            }
-            localState.deck = shuffle(deck);
-        }
-
-        function dealHands() {
-            // Deal 4 safe cards + 1 Defuse
-            localState.players.forEach(p => {
-                p.hand = [];
-                // 1 Defuse
-                p.hand.push(CARD_TYPES.PATCH);
-                // 4 Others
-                for(let i=0; i<4; i++) {
-                    if (localState.deck.length > 0) p.hand.push(localState.deck.pop());
-                }
-            });
-        }
-
-        function insertBombs(playerCount) {
-            // Add remaining defuses
-            const extraDefuses = Math.max(2, Math.floor(playerCount * 0.5));
-            for (let i = 0; i < extraDefuses; i++) localState.deck.push(CARD_TYPES.PATCH);
-            // Add Bombs
-            const bombsNeeded = playerCount - 1;
-            for (let i = 0; i < bombsNeeded; i++) localState.deck.push(CARD_TYPES.CRASH);
-            // Shuffle
-            localState.deck = shuffle(localState.deck);
-        }
-
-        function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
-        }
-
-        // --- GAME ACTIONS ---
-        window.playCard = async (cardIndex) => {
-            const pIdx = localState.turnIndex;
-            const player = localState.players[pIdx];
-            const isAllowed = localState.mode === 'single' ? true : player.id === myPlayerId;
-            if (!isAllowed || localState.status !== 'PLAYING') return;
-            if (isAllowed) localState.cardsPlayedThisGame++;
-
-            const card = player.hand[cardIndex];
-            const handContainer = document.getElementById('player-hand');
-            const cardEl = handContainer.children[cardIndex];
-            const discardEl = document.getElementById('discard-pile');
-            if (cardEl && discardEl) await performCardAnimation(cardEl, discardEl, card);
-
-            let newState = JSON.parse(JSON.stringify(localState)); 
-            let currentPlayer = newState.players[pIdx];
-            
-            if (card.id === 'FRAG_0' || card.id === 'FRAG_1') {
-                const matchIndex = currentPlayer.hand.findIndex((c, i) => c.id === card.id && i !== cardIndex);
-                if (matchIndex === -1) { showToast("NEED PAIR!"); return; }
-                const idx1 = Math.max(cardIndex, matchIndex);
-                const idx2 = Math.min(cardIndex, matchIndex);
-                currentPlayer.hand.splice(idx1, 1);
-                currentPlayer.hand.splice(idx2, 1);
-                newState.discardPile.push(card, card);
-                newState = await executeStealWithAnimation(newState, pIdx);
-                await updateState(newState);
-                return;
-            }
-            
-            currentPlayer.hand.splice(cardIndex, 1);
-            newState.discardPile.push(card);
-
-            let turnEnded = false;
-            if (card.id === 'ATTACK') {
-                newState.attacksBuffered += 2;
-                turnEnded = true;
-                newState = advanceTurn(newState, true);
-            } else if (card.id === 'SKIP') {
-                currentPlayer.turnsToTake -= 1;
-                if (currentPlayer.turnsToTake <= 0) {
-                    turnEnded = true;
-                    newState = advanceTurn(newState);
-                }
-            } else if (card.id === 'FUTURE') {
-                if (!player.isBot && (localState.mode === 'single' || currentPlayer.id === myPlayerId)) showFutureSight(newState.deck);
-            } else if (card.id === 'SHUFFLE') {
-                newState.deck = shuffle(newState.deck);
-            } else if (card.id === 'STEAL') {
-                newState = await executeStealWithAnimation(newState, pIdx);
-            }
-
-            if (localState.mode === 'single') {
-                localState = newState;
-                renderGame();
-                checkBotTurn();
-            } else {
-                updateState(newState);
-            }
-        };
-
-        window.playerDrawCard = async () => {
-            const player = localState.players[localState.turnIndex];
-            const isMe = localState.mode === 'single' ? !player.isBot : player.id === myPlayerId;
-            if (!isMe || localState.status !== 'PLAYING') return;
-            const drawPileEl = document.getElementById('draw-pile');
-            const handEl = document.getElementById('player-hand');
-            if (drawPileEl && handEl) await performCardAnimation(drawPileEl, handEl, {}); 
-            await handleDraw(localState.turnIndex);
-        };
-
         async function handleDraw(playerIdx) {
             let newState = JSON.parse(JSON.stringify(localState));
             let player = newState.players[playerIdx];
@@ -746,7 +470,14 @@
             if (card.id === 'CRASH') {
                 // 1. Set global state to show reveal
                 newState.activeFlashCard = { id: 'CRASH', drawer: player.name };
-                await updateState(newState);
+                
+                // Commit to update all clients with flash
+                if (localState.mode === 'multi' && isHost) {
+                    localState = newState;
+                    broadcastState(); // Sends flash state
+                } else if (localState.mode === 'single') {
+                    await updateState(newState);
+                }
 
                 // 2. Wait 3 seconds
                 setTimeout(async () => {
@@ -760,7 +491,7 @@
                         postRevealState.discardPile.push(CARD_TYPES.PATCH);
                         const randomSpot = Math.floor(Math.random() * (postRevealState.deck.length + 1));
                         postRevealState.deck.splice(randomSpot, 0, CARD_TYPES.CRASH);
-                        showToast(`${p.name} DEFUSED!`); // Fixed quotes
+                        showToast(`${p.name} DEFUSED!`); 
                         p.turnsToTake -= 1;
                     } else {
                         p.isDead = true;
@@ -777,7 +508,14 @@
                     if (p.turnsToTake <= 0 && !p.isDead) postRevealState = advanceTurn(postRevealState);
                     if (p.isDead && postRevealState.status !== 'GAME_OVER') postRevealState = advanceTurn(postRevealState);
 
-                    await updateState(postRevealState);
+                    // Commit changes
+                    if (localState.mode === 'multi' && isHost) {
+                        localState = postRevealState;
+                        broadcastState();
+                    } else if (localState.mode === 'single') {
+                        await updateState(postRevealState);
+                    }
+
                 }, 3000);
                 
                 return; 
@@ -792,81 +530,21 @@
             await updateState(newState);
         }
 
-        // ... Animations, ExecuteSteal, AdvanceTurn, CheckBotTurn, BotAction remain same ...
-        async function performCardAnimation(startEl, endEl, cardType) {
-            return new Promise(resolve => {
-                if (!startEl || !endEl) { resolve(); return; }
-                const startRect = startEl.getBoundingClientRect();
-                const endRect = endEl.getBoundingClientRect();
-                const flyer = document.createElement('div');
-                flyer.className = `flying-card rounded-lg border-2 border-black flex flex-col items-center justify-between p-2 shadow-lg ${cardType.color || 'bg-slate-700'}`;
-                flyer.style.width = `${startRect.width}px`;
-                flyer.style.height = `${startRect.height}px`;
-                flyer.style.top = `${startRect.top}px`;
-                flyer.style.left = `${startRect.left}px`;
-                if (cardType.icon) {
-                    flyer.innerHTML = `<i class="fas ${cardType.icon} text-3xl text-white drop-shadow-md my-auto"></i>`;
-                } else {
-                    flyer.className = 'flying-card bg-slate-800 border-2 border-slate-600 rounded-lg shadow-xl flex items-center justify-center';
-                    flyer.innerHTML = '<i class="fas fa-microchip text-slate-500 text-4xl"></i>';
-                }
-                document.body.appendChild(flyer);
-                flyer.offsetHeight; 
-                flyer.style.top = `${endRect.top}px`;
-                flyer.style.left = `${endRect.left}px`;
-                setTimeout(() => { flyer.remove(); resolve(); }, 600);
-            });
-        }
-
-        async function executeStealWithAnimation(state, thiefIdx) {
-            const thief = state.players[thiefIdx];
-            const victims = state.players.filter((p, i) => i !== thiefIdx && !p.isDead && p.hand.length > 0);
-            if (victims.length > 0) {
-                const victim = victims[Math.floor(Math.random() * victims.length)];
-                if (thief.id === myPlayerId || localState.mode === 'single' && thief.id === 'player') {
-                    const victimEl = document.getElementById(`avatar-${victim.id}`);
-                    const myHandEl = document.getElementById('player-hand');
-                    if (victimEl && myHandEl) await performCardAnimation(victimEl, myHandEl, {icon:'fa-question', color:'bg-gray-800 border-dashed'});
-                }
-                const realVictim = state.players.find(p => p.id === victim.id);
-                const cardIdx = Math.floor(Math.random() * realVictim.hand.length);
-                const stolenCard = realVictim.hand.splice(cardIdx, 1)[0];
-                thief.hand.push(stolenCard);
-                showToast(`STOLEN FROM ${victim.name}!`); // Fixed quotes
-            }
-            return state;
-        }
-
-        function advanceTurn(state, isAttack = false) {
-            let nextIndex = (state.turnIndex + 1) % state.players.length;
-            while(state.players[nextIndex].isDead) {
-                nextIndex = (nextIndex + 1) % state.players.length;
-            }
-            state.turnIndex = nextIndex;
-            if (isAttack) {
-                state.players[nextIndex].turnsToTake = 2; 
-            } else {
-                state.players[nextIndex].turnsToTake = 1;
-            }
-            return state;
-        }
-
         function checkBotTurn() {
             if (localState.status !== 'PLAYING') return;
             const player = localState.players[localState.turnIndex];
             if (!player || !player.isBot || player.isDead) return;
-            // Freeze bots during flash card
             if (localState.activeFlashCard) return; 
 
             if (localState.mode === 'multi') {
-                 if (!currentUser) return;
-                 if (localState.players.length > 0 && localState.players[0].id !== myPlayerId) return;
+                 if (!isHost) return;
             }
             setTimeout(() => { botAction(player); }, 1500);
         }
 
         async function botAction(player) {
-            // Safety check against recursive loop if activeFlashCard is stuck
+            // Re-validate turn and player to prevent race condition crashes
+            if (localState.players[localState.turnIndex].id !== player.id) return;
             if (localState.activeFlashCard) return;
 
             if (localState.deck.length === 0 && localState.discardPile.length === 0 && !player.hand.some(c => c.id !== 'CRASH')) return;
@@ -884,247 +562,513 @@
             }
         }
 
-        // --- RENDER HELPERS ---
+        function advanceTurn(state, isAttack = false) {
+            if (typeof state === 'boolean') {
+                 isAttack = state;
+                 state = JSON.parse(JSON.stringify(localState));
+            }
+            if (!state) {
+                 state = JSON.parse(JSON.stringify(localState));
+            }
+             
+            let nextIndex = (state.turnIndex + 1) % state.players.length;
+            while(state.players[nextIndex].isDead) {
+                nextIndex = (nextIndex + 1) % state.players.length;
+            }
+            state.turnIndex = nextIndex;
+            if (isAttack) {
+                state.players[nextIndex].turnsToTake = 2;
+            } else {
+                state.players[nextIndex].turnsToTake = 1;
+            }
+            return state;
+        }
+
+
+        // --- DECK & SETUP ---
+        function setupDeckForDeal(playerCount) {
+            let deck = [];
+            const multipliers = Math.max(1, Math.ceil(playerCount / 4));
+            for(let i=0; i < 4 * multipliers; i++) {
+                deck.push(CARD_TYPES.ATTACK, CARD_TYPES.SKIP, CARD_TYPES.FUTURE, CARD_TYPES.SHUFFLE, CARD_TYPES.STEAL, CARD_TYPES.FRAG_0, CARD_TYPES.FRAG_1); 
+            }
+            for(let i=0; i < 3 * multipliers; i++) {
+                deck.push(CARD_TYPES.ATTACK, CARD_TYPES.SKIP, CARD_TYPES.FRAG_0, CARD_TYPES.FRAG_1);
+            }
+            localState.deck = shuffle(deck);
+        }
+
+        function dealHands() {
+            localState.players.forEach(p => {
+                p.hand = [];
+                p.hand.push(CARD_TYPES.PATCH);
+                for(let i=0; i<4; i++) {
+                    if (localState.deck.length > 0) p.hand.push(localState.deck.pop());
+                }
+            });
+        }
+
+        function insertBombs(playerCount) {
+            const extraDefuses = Math.max(2, Math.floor(playerCount * 0.5));
+            for (let i = 0; i < extraDefuses; i++) localState.deck.push(CARD_TYPES.PATCH);
+            const bombsNeeded = playerCount - 1;
+            for (let i = 0; i < bombsNeeded; i++) localState.deck.push(CARD_TYPES.CRASH);
+            localState.deck = shuffle(localState.deck);
+        }
+
+        function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+        // --- MAIN FUNCTIONS ---
+        window.startGame = (mode) => {
+            document.getElementById('main-menu').classList.add('hidden');
+            if (mode === 'single') startSinglePlayer();
+        }
+
+        window.showMultiplayerMenu = () => {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('lobby-menu').classList.remove('hidden');
+        }
+
+        function startSinglePlayer() {
+            localState.mode = 'single';
+            isHost = true;
+            myPeerId = 'player';
+            localState.players = [
+                { id: 'player', name: userData.username, hand: [], isBot: false, isDead: false, turnsToTake: 1, emote: null },
+                { id: 'bot1', name: 'BOT_ALPHA', hand: [], isBot: true, isDead: false, turnsToTake: 1, emote: null },
+                { id: 'bot2', name: 'BOT_BETA', hand: [], isBot: true, isDead: false, turnsToTake: 1, emote: null },
+                { id: 'bot3', name: 'BOT_GAMMA', hand: [], isBot: true, isDead: false, turnsToTake: 1, emote: null }
+            ];
+            localState.cardsPlayedThisGame = 0;
+            
+            setupDeckForDeal(4);
+            dealHands();
+            insertBombs(4);
+
+            localState.status = 'PLAYING';
+            localState.turnIndex = Math.floor(Math.random() * 4);
+            
+            document.getElementById('game-board').classList.remove('hidden');
+            renderGame();
+            checkBotTurn();
+        }
+
+        // --- NETWORKING (PEERJS) ---
+
+        window.createRoom = (isPublic = false) => {
+            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const peerId = 'syscrash_' + code;
+            initPeer(peerId, true, null, isPublic);
+        }
+
+        window.joinRoom = () => {
+            const code = document.getElementById('room-code-input').value.toUpperCase();
+            if(code.length !== 4) return alert("Invalid Code");
+            const peerId = 'syscrash_' + code;
+            initPeer(null, false, peerId);
+        }
+
+        window.findPublicRoom = () => {
+            alert("Public Matchmaking unavailable in Serverless Mode. Hosting New Game...");
+            createRoom(true);
+        }
+
+        function initPeer(id, host, targetId, isPublic = false) {
+            isHost = host;
+            peer = new Peer(id); 
+            
+            peer.on('open', (myId) => {
+                myPeerId = myId;
+                if (isHost) {
+                    const code = myId.split('_')[1];
+                    document.getElementById('display-room-code').innerText = code;
+                    enterWaitingRoom();
+                    
+                    localState.mode = 'multi';
+                    localState.players = [{
+                        id: myId, name: userData.username, hand: [], isBot: false, isDead: false, turnsToTake: 1, emote: null
+                    }];
+                    localState.status = 'LOBBY';
+                    localState.maxPlayers = parseInt(document.getElementById('max-players-input').value) || 4;
+                    localState.isPublic = isPublic;
+                    renderLobby();
+
+                } else {
+                    hostConn = peer.connect(targetId);
+                    
+                    hostConn.on('open', () => {
+                        enterWaitingRoom();
+                        document.getElementById('display-room-code').innerText = targetId.split('_')[1];
+                        hostConn.send({ type: 'JOIN', name: userData.username });
+                    });
+
+                    hostConn.on('data', (data) => {
+                        handleClientData(data);
+                    });
+                    
+                    hostConn.on('close', () => {
+                        alert("Disconnected from Host");
+                        backToMain();
+                    });
+                }
+            });
+
+            peer.on('connection', (conn) => {
+                if (isHost) {
+                    connections.push(conn);
+                    conn.on('data', (data) => {
+                        handleHostData(data, conn);
+                    });
+                    conn.on('close', () => {
+                        connections = connections.filter(c => c !== conn);
+                    });
+                }
+            });
+            
+            peer.on('error', (err) => {
+                console.error(err);
+                alert("Connection Error. Try another code or check network.");
+            });
+        }
+
+        function handleHostData(data, conn) {
+            if (data.type === 'JOIN') {
+                if (localState.status !== 'LOBBY') return;
+                if (localState.players.length >= localState.maxPlayers) return; 
+                
+                const newP = {
+                    id: conn.peer,
+                    name: data.name,
+                    hand: [], isBot: false, isDead: false, turnsToTake: 1, emote: null
+                };
+                localState.players.push(newP);
+                broadcastState();
+            } 
+            else if (data.type === 'PLAY_CARD') {
+                const pIdx = localState.players.findIndex(p => p.id === conn.peer);
+                if (pIdx === localState.turnIndex) {
+                    window.playCard(data.cardIndex); 
+                }
+            }
+            else if (data.type === 'DRAW_CARD') {
+                const pIdx = localState.players.findIndex(p => p.id === conn.peer);
+                if (pIdx === localState.turnIndex) {
+                    window.playerDrawCard(true); // Allow network request
+                }
+            }
+            else if (data.type === 'EMOTE') {
+                const pIdx = localState.players.findIndex(p => p.id === conn.peer);
+                if (pIdx > -1) {
+                    localState.players[pIdx].emote = data.emoji;
+                    broadcastState();
+                    setTimeout(() => {
+                        localState.players[pIdx].emote = null;
+                        broadcastState();
+                    }, 2000);
+                }
+            }
+        }
+
+        function handleClientData(data) {
+            if (data.type === 'STATE_UPDATE') {
+                localState = data.state;
+                if (localState.status === 'LOBBY') {
+                    // Force lobby view
+                    document.getElementById('lobby-menu').classList.remove('hidden');
+                    document.getElementById('game-board').classList.add('hidden');
+                    renderLobby();
+                }
+                else if (localState.status === 'PLAYING' || localState.status === 'GAME_OVER') {
+                    document.getElementById('lobby-menu').classList.add('hidden');
+                    document.getElementById('game-board').classList.remove('hidden');
+                    renderGame();
+                }
+            } else if (data.type === 'FUTURE_SIGHT') {
+                showFutureSight(data.deck);
+            }
+        }
+
+        function broadcastState() {
+            const payload = { type: 'STATE_UPDATE', state: localState };
+            connections.forEach(c => c.send(payload));
+            
+            // Host UI Update Logic
+            if (localState.status === 'LOBBY') {
+                 document.getElementById('lobby-menu').classList.remove('hidden');
+                 document.getElementById('game-board').classList.add('hidden');
+                 renderLobby();
+            }
+            else {
+                 document.getElementById('lobby-menu').classList.add('hidden');
+                 document.getElementById('game-board').classList.remove('hidden');
+                 renderGame();
+            }
+        }
+
+        // FIXED: Re-added startMultiplayerGame function that was missing/undefined
+        window.startMultiplayerGame = () => {
+            if(!isHost) return;
+            setupDeckForDeal(localState.players.length);
+            dealHands();
+            insertBombs(localState.players.length);
+            localState.status = 'PLAYING';
+            localState.turnIndex = 0;
+            broadcastState(); // Use broadcast to ensure clients switch screens
+        }
+
+        window.playCard = async (cardIndex) => {
+            if (!isHost && localState.mode === 'multi') {
+                hostConn.send({ type: 'PLAY_CARD', cardIndex: cardIndex });
+                return;
+            }
+
+            const pIdx = localState.turnIndex;
+            const player = localState.players[pIdx];
+            const card = player.hand[cardIndex];
+            
+            if (!card) return;
+
+            // Removing premature broadcast, rely on updateState at end
+
+            let newState = JSON.parse(JSON.stringify(localState));
+            let currentPlayer = newState.players[pIdx];
+            
+             if (card.id === 'FRAG_0' || card.id === 'FRAG_1') {
+                const matchIndex = currentPlayer.hand.findIndex((c, i) => c.id === card.id && i !== cardIndex);
+                if (matchIndex === -1) { showToast("NEED PAIR!"); return; }
+                const idx1 = Math.max(cardIndex, matchIndex);
+                const idx2 = Math.min(cardIndex, matchIndex);
+                currentPlayer.hand.splice(idx1, 1);
+                currentPlayer.hand.splice(idx2, 1);
+                newState.discardPile.push(card, card);
+                executeSteal(newState, pIdx);
+                await updateState(newState);
+                return;
+            }
+            
+            currentPlayer.hand.splice(cardIndex, 1);
+            newState.discardPile.push(card);
+
+            let turnEnded = false;
+            if (card.id === 'ATTACK') {
+                newState.attacksBuffered += 2;
+                turnEnded = true;
+                newState = advanceTurn(newState, true); 
+                localState = newState;
+            } else if (card.id === 'SKIP') {
+                currentPlayer.turnsToTake -= 1;
+                if (currentPlayer.turnsToTake <= 0) {
+                    turnEnded = true;
+                    localState = advanceTurn(newState);
+                } else {
+                    localState = newState;
+                }
+            } else if (card.id === 'FUTURE') {
+                 if (localState.mode === 'single') showFutureSight(newState.deck);
+                 else if (localState.mode === 'multi') {
+                     if (player.id === myPeerId) showFutureSight(newState.deck);
+                     else {
+                         const target = connections.find(c => c.peer === player.id);
+                         if (target) target.send({ type: 'FUTURE_SIGHT', deck: newState.deck });
+                     }
+                 }
+                 localState = newState;
+            } else if (card.id === 'SHUFFLE') {
+                newState.deck = shuffle(newState.deck);
+                localState = newState;
+            } else if (card.id === 'STEAL') {
+                executeSteal(newState, pIdx);
+                localState = newState;
+            } else {
+                localState = newState;
+            }
+
+            await updateState(newState);
+        }
+
+        window.playerDrawCard = async (isNetworkRequest = false) => {
+             if (!isHost && localState.mode === 'multi') {
+                hostConn.send({ type: 'DRAW_CARD' });
+                return;
+            }
+            
+            const player = localState.players[localState.turnIndex];
+            
+            const isMe = localState.mode === 'single' ? !player.isBot : player.id === myPeerId;
+            if (!isNetworkRequest && (!isMe || localState.status !== 'PLAYING')) return;
+
+             if (localState.deck.length === 0) {
+                if (localState.discardPile.length > 0) {
+                    localState.deck = shuffle([...localState.discardPile]);
+                    localState.discardPile = [];
+                    showToast("RESHUFFLED");
+                } else return;
+            }
+
+            await handleDraw(localState.turnIndex);
+        };
+
+        function executeSteal(state, thiefIdx) {
+             const thief = state.players[thiefIdx];
+             const victims = state.players.filter((p, i) => i !== thiefIdx && !p.isDead && p.hand.length > 0);
+             if (victims.length > 0) {
+                const victim = victims[Math.floor(Math.random() * victims.length)];
+                const cardIdx = Math.floor(Math.random() * victim.hand.length);
+                const stolen = victim.hand.splice(cardIdx, 1)[0];
+                thief.hand.push(stolen);
+                showToast(`STOLEN FROM ${victim.name}`);
+            }
+        }
+        
+        async function updateState(newState) {
+            localState = newState;
+            // Update local state and trigger side effects for single player
+            if (localState.mode === 'single') {
+                renderGame();
+                checkBotTurn();
+            } else if (localState.mode === 'multi' && isHost) {
+                broadcastState();
+            }
+        }
+
+        function renderLobby() {
+            document.getElementById('player-count-display').innerText = `${localState.players.length}/${localState.maxPlayers}`;
+            const list = document.getElementById('player-list');
+            list.innerHTML = localState.players.map(p => `<li><i class="fas fa-robot mr-2"></i>${p.name} ${p.id === myPeerId ? '(YOU)' : ''}</li>`).join('');
+            
+            if (isHost) {
+                document.getElementById('start-mp-btn').classList.remove('hidden');
+                document.getElementById('waiting-msg').classList.add('hidden');
+            } else {
+                document.getElementById('start-mp-btn').classList.add('hidden');
+                document.getElementById('waiting-msg').classList.remove('hidden');
+            }
+        }
+
         function renderGame() {
             const currentPlayer = localState.players[localState.turnIndex];
-            const isMe = localState.mode === 'single' ? !currentPlayer.isBot : currentPlayer.id === myPlayerId;
+            const isMe = localState.mode === 'single' ? !currentPlayer.isBot : currentPlayer.id === myPeerId;
             
-            // GLOBAL REVEAL CHECK
             const overlay = document.getElementById('reveal-overlay');
             if (localState.activeFlashCard) {
-                document.getElementById('reveal-msg').innerText = `${localState.activeFlashCard.drawer} TRIGGERED SYSTEM CRASH!`;
+                document.getElementById('reveal-msg').innerText = `${localState.activeFlashCard.drawer} PULLED CRASH!`;
                 overlay.classList.remove('hidden');
             } else {
                 overlay.classList.add('hidden');
             }
 
-            const statusEl = document.getElementById('status-msg');
-            if (localState.status === 'GAME_OVER') return; 
-
-            statusEl.innerText = isMe ? `YOUR TURN (${currentPlayer.turnsToTake})` : `WAITING FOR ${currentPlayer.name}...`;
-            statusEl.className = isMe ? "bg-green-900 text-green-100 px-4 py-1 rounded text-lg pixel-font border border-green-500 shadow-lg" : "bg-black bg-opacity-70 text-slate-400 px-4 py-1 rounded text-lg pixel-font";
-            document.getElementById('deck-count').innerText = localState.deck.length;
-            const discardEl = document.getElementById('last-played-card');
-            if (localState.discardPile.length > 0) {
-                discardEl.innerHTML = renderCardHTML(localState.discardPile[localState.discardPile.length - 1], false);
-            } else { discardEl.innerHTML = ''; }
-
-            const handEl = document.getElementById('player-hand');
-            handEl.innerHTML = '';
-            let myPlayer = localState.mode === 'single' ? localState.players[0] : localState.players.find(p => p.id === myPlayerId);
-            
-            if (myPlayer) {
-                const emoteContainer = document.getElementById('player-emote-container');
-                if (myPlayer.emote) {
-                    emoteContainer.innerHTML = `<div class="bg-white text-black p-2 rounded-lg pixel-font text-xl z-50 emote-float-up min-w-[30px] text-center shadow-lg border-2 border-slate-500">${myPlayer.emote}</div>`;
-                } else { emoteContainer.innerHTML = ''; }
-
-                if (!myPlayer.isDead) {
-                    document.getElementById('player-name').innerText = myPlayer.name;
-                    myPlayer.hand.forEach((card, idx) => {
-                        const el = document.createElement('div');
-                        el.className = `card w-20 h-32 md:w-24 md:h-36 rounded-lg border-2 border-black flex flex-col items-center justify-between p-2 cursor-pointer shadow-lg ${card.color} flex-shrink-0 relative overflow-hidden`;
-                        el.innerHTML = renderCardHTML(card, true);
-                        el.onclick = () => { if (isMe && !localState.activeFlashCard) window.playCard(idx); }; // Disable input during flash
-                        handEl.appendChild(el);
-                    });
-                } else { handEl.innerHTML = '<div class="text-red-500 pixel-font text-2xl">DEAD</div>'; }
+            if (localState.status === 'GAME_OVER') {
+                document.getElementById('game-over-modal').classList.remove('hidden');
+                document.getElementById('winner-text').innerText = `${localState.winner} WINS!`;
+                return;
             }
 
-            const oppContainer = document.getElementById('opponents-container');
-            oppContainer.innerHTML = '';
-            localState.players.forEach((p, idx) => {
-                if (localState.mode === 'single' && idx === 0) return;
-                if (localState.mode !== 'single' && p.id === myPlayerId) return;
-                const oppEl = document.createElement('div');
-                const isTurn = localState.turnIndex === idx;
-                oppEl.className = `flex flex-col items-center justify-start w-16 mb-2 transition duration-500 ${isTurn ? 'scale-110' : 'opacity-70'}`;
-                let emoteHtml = '';
-                if (p.emote) {
-                    emoteHtml = `<div class="absolute -bottom-10 bg-white text-black p-1 rounded-lg pixel-font text-xs z-50 emote-float-down shadow-lg border border-slate-500 min-w-[20px] text-center">${p.emote}</div>`;
-                }
-                
-                let extraHtml = '';
-                if (localState.mode === 'multi' && localState.status === 'LOBBY') {
-                    if (currentUser && localState.players[0].id === myPlayerId) {
-                        extraHtml = `<button onclick="kickPlayer('${p.id}')" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[8px] border border-black hover:bg-red-400">X</button>`;
-                        if (p.flagged) extraHtml += `<div class="absolute -top-2 -right-2 text-red-500 text-xs animate-bounce">🚩</div>`;
-                    } else {
-                        extraHtml = `<button onclick="lobbyReport('${p.id}')" class="absolute -top-2 -right-2 bg-yellow-600 text-black rounded-full w-4 h-4 flex items-center justify-center text-[8px] border border-black hover:bg-yellow-400">!</button>`;
-                    }
-                }
+            document.getElementById('status-msg').innerText = isMe ? `YOUR TURN (${currentPlayer.turnsToTake})` : `WAITING FOR ${currentPlayer.name}`;
+            document.getElementById('deck-count').innerText = localState.deck.length;
+            
+            const handEl = document.getElementById('player-hand');
+            handEl.innerHTML = '';
+            
+            let myPlayer = localState.players.find(p => p.id === myPeerId);
+            if (myPlayer && !myPlayer.isDead) {
+                document.getElementById('player-emote-container').innerHTML = myPlayer.emote ? `<div class="bg-white text-black p-2 rounded pixel-font text-xl animate-bounce">${myPlayer.emote}</div>` : '';
+                document.getElementById('player-name').innerText = myPlayer.name;
 
-                oppEl.innerHTML = `
+                myPlayer.hand.forEach((card, idx) => {
+                    const el = document.createElement('div');
+                    el.className = `card w-20 h-32 md:w-24 md:h-36 rounded-lg border-2 border-black flex flex-col items-center justify-between p-2 cursor-pointer shadow-lg ${card.color} flex-shrink-0 relative overflow-hidden`;
+                    el.innerHTML = `
+                        <div class="absolute top-1 left-1 text-[8px] font-bold text-white opacity-50 pixel-font">${card.name}</div>
+                        <i class="fas ${card.icon} text-3xl md:text-4xl text-white drop-shadow-md my-auto"></i>
+                        <div class="text-[8px] md:text-[9px] text-center leading-tight text-white font-bold pixel-font px-1">${card.desc}</div>
+                    `;
+                    el.onclick = () => { if (isMe && !localState.activeFlashCard) window.playCard(idx); };
+                    handEl.appendChild(el);
+                });
+            } else if (myPlayer && myPlayer.isDead) {
+                handEl.innerHTML = '<div class="text-red-500 pixel-font text-2xl">CRITICAL FAILURE (DEAD)</div>';
+            }
+
+            const container = document.getElementById('opponents-container');
+            container.innerHTML = '';
+            localState.players.forEach((p, idx) => {
+                if (p.id === myPeerId) return;
+                const el = document.createElement('div');
+                const isTurn = localState.turnIndex === idx;
+                el.className = `flex flex-col items-center justify-start w-16 mb-2 transition duration-500 ${isTurn ? 'scale-110' : 'opacity-70'}`;
+                
+                let emoteHtml = p.emote ? `<div class="absolute -bottom-10 bg-white text-black p-1 rounded pixel-font text-xs z-50 animate-bounce">${p.emote}</div>` : '';
+
+                el.innerHTML = `
                     <div class="relative">
                         ${emoteHtml}
-                        ${extraHtml}
-                        <div id="avatar-${p.id}" class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 ${p.isDead ? 'border-red-600 bg-red-900' : (isTurn ? 'border-green-400 bg-slate-700' : 'border-slate-600 bg-slate-800')} flex items-center justify-center mb-1">
-                            <i class="fas ${p.isBot ? 'fa-robot' : 'fa-user'} ${p.isDead ? 'text-red-500' : 'text-white'} text-sm md:text-lg"></i>
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 ${p.isDead ? 'border-red-600 bg-red-900' : (isTurn ? 'border-green-400 bg-slate-700' : 'border-slate-600 bg-slate-800')} flex items-center justify-center mb-1">
+                             <i class="fas ${p.isBot ? 'fa-robot' : 'fa-user'} ${p.isDead ? 'text-red-500' : 'text-white'} text-sm md:text-lg"></i>
                         </div>
                         ${!p.isDead ? `<div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center border border-black">${p.hand.length}</div>` : ''}
                     </div>
                     <span class="text-[10px] text-white pixel-font truncate w-full text-center ${isTurn ? 'text-green-400' : ''}">${p.name}</span>
                 `;
-                oppContainer.appendChild(oppEl);
+                container.appendChild(el);
             });
         }
 
-        window.startMultiplayerGame = async () => {
-            localState.status = 'PLAYING';
-            // NEW FLOW for MP
-            setupDeckForDeal(localState.players.length);
-            dealHands();
-            insertBombs(localState.players.length);
-            localState.turnIndex = 0; 
-            await updateState(localState); 
-        };
-
-        // ... (Remaining handlers createRoom, joinRoom, etc same as prev) ...
-        window.createRoom = async (isPublic = false) => {
-            if (!currentUser) return;
-            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-            gameId = code;
-            myPlayerId = currentUser.uid;
-            const maxPlayers = parseInt(document.getElementById('max-players-input').value) || 4;
-            const roomData = {
-                players: [{
-                    id: myPlayerId,
-                    name: userData.username, 
-                    hand: [], isBot: false, isDead: false, turnsToTake: 1, emote: null, flagged: false
-                }],
-                deck: [], discardPile: [], turnIndex: 0, status: 'LOBBY', attacksBuffered: 0, mode: 'multi', winner: null, maxPlayers: maxPlayers, isPublic: isPublic, kickVotes: {}
-            };
-            try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code), roomData); enterWaitingRoom(code); listenToRoom(code); } 
-            catch (error) { console.error(error); alert("Create failed."); }
-        };
-
-        window.joinRoom = async () => {
-            if (!currentUser) return;
-            const code = document.getElementById('room-code-input').value.toUpperCase();
-            if (code.length !== 4) return alert("Invalid Code");
-            gameId = code;
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
-            try {
-                const snap = await getDoc(roomRef);
-                if (!snap.exists()) return alert("Room not found");
-                const data = snap.data();
-                if (data.status !== 'LOBBY') return alert("Started");
-                if (data.players.length >= data.maxPlayers && !data.players.find(p=>p.id===currentUser.uid)) return alert("Full");
-
-                myPlayerId = currentUser.uid;
-                const existing = data.players.find(p => p.id === currentUser.uid);
-                if (existing && existing.name !== userData.username) myPlayerId = Math.floor(Math.random()*100000).toString();
-
-                let players = [...data.players];
-                const myIndex = players.findIndex(p => p.id === myPlayerId);
-                if (myIndex !== -1) {
-                    players[myIndex].name = userData.username;
-                    await updateDoc(roomRef, { players: players });
-                } else {
-                    players.push({
-                        id: myPlayerId,
-                        name: userData.username,
-                        hand: [], isBot: false, isDead: false, turnsToTake: 1, emote: null, flagged: false
-                    });
-                    await updateDoc(roomRef, { players: players });
-                }
-                enterWaitingRoom(code);
-                listenToRoom(code);
-            } catch(e) { console.error(e); alert("Join failed"); }
-        };
-
-        window.findPublicRoom = async () => {
-             if (!currentUser) return;
-             const roomsRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
-             try {
-                const querySnapshot = await getDocs(roomsRef);
-                let foundId = null;
-                for (const doc of querySnapshot.docs) {
-                    const data = doc.data();
-                    if (data.status === 'LOBBY' && data.isPublic && data.players.length < data.maxPlayers) { foundId = doc.id; break; }
-                }
-                if (foundId) { document.getElementById('room-code-input').value = foundId; await joinRoom(); } 
-                else { await createRoom(true); }
-             } catch (error) { await createRoom(true); }
+        function enterWaitingRoom() {
+            document.getElementById('lobby-controls').classList.add('hidden');
+            document.getElementById('waiting-room').classList.remove('hidden');
+            document.getElementById('waiting-msg').classList.remove('hidden');
         }
-        window.hostForceSkip = async () => {
-             if (!currentUser) return;
-             let newState = JSON.parse(JSON.stringify(localState));
-             newState = advanceTurn(newState);
-             await updateState(newState);
-        };
+
         window.backToMain = () => {
             document.getElementById('lobby-menu').classList.add('hidden');
             document.getElementById('game-over-modal').classList.add('hidden');
             document.getElementById('main-menu').classList.remove('hidden');
-            if (unsubscribeGame) unsubscribeGame();
+            if (peer) { peer.destroy(); peer = null; }
+            localState.status = 'LOBBY';
             updateMenuUI();
-        };
-        function enterWaitingRoom(code) {
-            document.getElementById('lobby-controls').classList.add('hidden');
-            document.getElementById('waiting-room').classList.remove('hidden');
-            document.getElementById('display-room-code').innerText = code;
-            document.getElementById('waiting-msg').classList.remove('hidden');
-        }
-        function listenToRoom(code) {
-            if (unsubscribeGame) unsubscribeGame();
-            unsubscribeGame = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code), (doc) => {
-                if (!doc.exists()) return;
-                localState = doc.data();
-                if (localState.status === 'LOBBY') {
-                    document.getElementById('player-count-display').innerText = `${localState.players.length}/${localState.maxPlayers}`;
-                    const list = document.getElementById('player-list');
-                    list.innerHTML = localState.players.map(p => `<li><i class="fas fa-robot mr-2"></i>${p.name} ${p.id === myPlayerId ? '(YOU)' : ''} ${p.flagged ? '🚩' : ''}</li>`).join('');
-                    if (localState.players[0].id === myPlayerId) {
-                        document.getElementById('start-mp-btn').classList.remove('hidden');
-                        document.getElementById('waiting-msg').classList.add('hidden');
-                    } else {
-                        document.getElementById('start-mp-btn').classList.add('hidden');
-                        document.getElementById('waiting-msg').classList.remove('hidden');
-                    }
-                } else if (localState.status === 'PLAYING') {
-                    document.getElementById('lobby-menu').classList.add('hidden');
-                    document.getElementById('game-board').classList.remove('hidden');
-                    renderGame();
-                } else if (localState.status === 'GAME_OVER') {
-                    renderGame(); 
-                }
-            });
         }
 
-        window.toggleEmoteMenu = () => {
-            document.getElementById('emote-menu').classList.toggle('hidden');
-        }
-
-        window.sendEmote = async (emoji) => {
+        window.toggleEmoteMenu = () => document.getElementById('emote-menu').classList.toggle('hidden');
+        window.sendEmote = (emoji) => {
             document.getElementById('emote-menu').classList.add('hidden');
-            const myIdx = localState.players.findIndex(p => p.id === (localState.mode === 'single' ? 'player' : myPlayerId));
-            if (myIdx === -1) return;
-
-            if (localState.mode === 'single') {
-                showEmoteLocally(myIdx, emoji);
+            if(localState.mode === 'single') {
+                const me = localState.players[0];
+                me.emote = emoji;
+                renderGame();
+                setTimeout(() => { me.emote = null; renderGame(); }, 2000);
             } else {
-                let newState = JSON.parse(JSON.stringify(localState));
-                newState.players[myIdx].emote = emoji;
-                await updateState(newState);
-                
-                setTimeout(async () => {
-                    if (localState.players[myIdx].emote === emoji) {
-                        newState = JSON.parse(JSON.stringify(localState));
-                        newState.players[myIdx].emote = null;
-                        await updateState(newState);
+                if(!isHost) hostConn.send({ type: 'EMOTE', emoji: emoji });
+                else {
+                    const me = localState.players.find(p => p.id === myPeerId);
+                    if(me) {
+                        me.emote = emoji;
+                        broadcastState();
+                        setTimeout(() => { me.emote = null; broadcastState(); }, 2000);
                     }
-                }, 2000);
+                }
             }
         }
 
-        function showEmoteLocally(playerIdx, emoji) {
-            localState.players[playerIdx].emote = emoji;
-            renderGame();
-            setTimeout(() => {
-                localState.players[playerIdx].emote = null;
-                renderGame();
-            }, 2000);
+        function endGame(winnerName) {
+            let xpEarned = 0;
+            // In single player or multiplayer, calculate XP
+            if (localState.mode === 'single') {
+                if (!userData.isGuest) {
+                    xpEarned += 10;
+                    addXp(xpEarned); 
+                }
+            } else {
+                const me = localState.players.find(p => p.id === myPeerId);
+                if (me && !userData.isGuest) {
+                     xpEarned += 10; // Participation
+                     if (!me.isDead) xpEarned += 50; // Win bonus
+                     
+                     addXp(xpEarned);
+                }
+            }
+            document.getElementById('xp-gain-msg').innerText = userData.isGuest ? "GUEST MODE (NO XP SAVED)" : `+${xpEarned} XP GAINED`;
+            document.getElementById('winner-text').innerText = `${winnerName} WINS!`;
+            document.getElementById('game-over-modal').classList.remove('hidden');
         }
         
         function renderCardHTML(card, showDetails) {
